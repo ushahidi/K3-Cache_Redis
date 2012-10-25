@@ -13,45 +13,11 @@
 	 * 
 	 *     return array(
 	 *          'default'   => array(                          // Default group
-	 *                  'driver'         => 'redis'            // using Redis driver
-	 *                  'servers'        => array(             // Available server definitions
-	 *                         // First redis server
-	 *                         array(
-	 *                              'host'             => 'localhost',
-	 *                              'port'             => 6379,
-	 *                              'alias'            => 'local',
-	 *                         ),
-	 *                         // Second redis server
-	 *                         array(
-	 *                              'host'             => 'redis.domain.tld',
-	 *                              'port'             => 6379,
-	 *                              'alias'            => 'remote',
-	 *                         ),
-	 *                  ),
+	 *                  'driver'         => 'redis'            // using Redis AMQPConnection
+	 *                  'host'           => 'localhost'
+	 *                  'port'           => 6379
 	 *           ),
 	 *     )
-	 * 
-	 * In cases where only one cache group is required, if the group is named `default` there is
-	 * no need to pass the group name when instantiating a cache instance.
-	 * 
-	 * #### General cache group configuration settings
-	 * 
-	 * Below are the settings available to all types of cache driver.
-	 * 
-	 * Name           | Required | Description
-	 * -------------- | -------- | ---------------------------------------------------------------
-	 * driver         | __YES__  | (_string_) The driver type to use
-	 * servers        | __YES__  | (_array_) Associative array of server details, must include a __host__ key. (see _Redis server configuration_ below)
-	 * 
-	 * #### Redis server configuration
-	 * 
-	 * The following settings should be used when defining each redis server
-	 * 
-	 * Name             | Required | Description
-	 * ---------------- | -------- | ---------------------------------------------------------------
-	 * host             | __YES__  | (_string_) The host of the redis server, i.e. __localhost__; or __127.0.0.1__; or __redis.domain.tld__
-	 * port             | __NO__   | (_integer_) Point to the port where redis is listening for connections. Default __6379__
-	 * alias            | __NO__   | (_string_)  Name for direct reference to this server. Default __NULL__
 	 * 
 	 * ### System requirements
 	 * 
@@ -99,7 +65,7 @@
 		protected function __construct(array $config)
 		{
 			if( ! defined( 'KOHANA_CACHE_REDIS_LOADED' ) ) {
-				$path = Kohana::find_file( 'vendor', 'redisent/redisent_cluster' );
+				$path = Kohana::find_file( 'vendor', 'redisent/src/redisent/Redis' );
 				if( false === $path ) {
 					throw new Kohana_Cache_Exception('Redisent vendor code not found');
 				}
@@ -109,32 +75,10 @@
 
 			parent::__construct($config);
 
-			// Load servers from configuration
-			$_servers = Arr::get( $this->_config, 'servers', NULL );
-
-			if ( ! $_servers) {
-				// Throw an exception if no server found
-				throw new Kohana_Cache_Exception('No Redis servers defined in configuration');
-			}
-
-			$servers = array();
-			
-			// Normalize the settings into redisent format.
-			foreach( $_servers as $server ) {
-
-				$server += $this->_default_config;
-
-				if( is_null( $server['alias'] ) ) {
-					$servers[] = array( 'host' => $server['host'], 'port' => $server['port'] );
-				}
-				else {
-					$servers[$server['alias']] = array( 'host' => $server['host'], 'port' => $server['port'] );
-				}
-
-			}
-
 			// Setup Redis
-			$this->_redis = new RedisentCluster( $servers );
+			$host = Arr::get($this->_config, 'host', 'localhost');
+			$port = Arr::get($this->_config, 'port', 6379);
+			$this->_redis = new redisent\Redis( 'redis://'.$host.':'.$port );
 		}
 
 		/**

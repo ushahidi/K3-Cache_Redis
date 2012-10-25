@@ -3,12 +3,8 @@
 	return array(
 		'redis' => array(
 			'driver' => 'redis',
-			'servers' => array(
-				array(
-					'host' => 'localhost',
-					'port' => 6379,
-				),
-			),
+			'host' => 'localhost',
+			'port' => 6379,
 		),
 	);
 
