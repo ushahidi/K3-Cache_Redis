@@ -1,0 +1,3 @@
+[submodule "vendor/redisent"]
+	path = vendor/redisent
+	url = git://github.com/jdp/redisent.git
